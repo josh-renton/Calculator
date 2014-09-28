@@ -1,4 +1,6 @@
 
+
+
 import PySide.QtGui as QtGui
 import PySide.QtCore as QtCore
 
@@ -53,6 +55,7 @@ class Calculator( QtGui.QWidget ):
 
 
     def buildButtons( self ):
+        pi_char = u'\u03C0'
 
         self.number_dicts = [
 
@@ -86,7 +89,7 @@ class Calculator( QtGui.QWidget ):
                 { 'name' : 'LBracket', 'text' : '(', 'row' : 0 , 'column' : 0 , },
                 { 'name' : 'RBracket', 'text' : ')', 'row' : 0 , 'column' : 1 , },
                 { 'name' : 'Percentage', 'text' : '%', 'row' : 0 , 'column' : 2 , },
-                { 'name' : 'Pi', 'text' : 'Pi', 'row' : 0 , 'column' : 3 , },
+                { 'name' : 'Pi', 'text' : pi_char, 'row' : 0 , 'column' : 3 , },
                 { 'name' : 'Exponent', 'text' : '^', 'row' : 0 , 'column' : 4 , },
                 #
                 { 'name' : 'Sine', 'text' : 'sin', 'row' : 1 , 'column' : 3 , },                            
@@ -130,6 +133,7 @@ class Screen( QtGui.QTextEdit ):
         QtGui.QTextEdit.__init__( self, parent=parent )
 
 
+
 class Button( QtGui.QPushButton ):
     def __init__( self, name, text, category, row, column, parent=None ):
         QtGui.QPushButton.__init__( self, text=text, parent=parent )
@@ -140,7 +144,7 @@ class Button( QtGui.QPushButton ):
         self.category = category
 
         if self.category != 'control':
-            self.clicked.connect( self.addTextToScreen )
+            self.clicked.connect( lambda: self.addTextToScreen( self.text() ) )
 
         elif self.__name__ == 'Answer':
             self.clicked.connect( self.answer )            
@@ -155,9 +159,9 @@ class Button( QtGui.QPushButton ):
             self.clicked.connect( self.openHistory )
 
 
-    def addTextToScreen( self ):
+    def addTextToScreen( self, text ):
         current_text = self.calc_screen.toPlainText()
-        self.calc_screen.setText( current_text + self.text() )
+        self.calc_screen.setText( current_text + text )
         cursor = self.calc_screen.textCursor()
         cursor.movePosition( QtGui.QTextCursor.EndOfLine )
         self.calc_screen.setTextCursor( cursor )
@@ -166,11 +170,19 @@ class Button( QtGui.QPushButton ):
         pass
 
     def backspace( self ):
-        current_text = self.calc_screen.toPlainText()
-        if not len( current_text ) < 1:
-            self.calc_screen.setText( self.calc_screen.toPlainText()[ :-1 ] )
+        cursor = self.calc_screen.textCursor()
+
+        if cursor.hasSelection():
+            cursor.removeSelectedText()
+            self.calc_screen.setTextCursor( cursor )
+
         else:
-            pass
+            current_text = self.calc_screen.toPlainText()
+            if not len( current_text ) < 1:
+                self.calc_screen.setText( self.calc_screen.toPlainText()[ :-1 ] )
+                self.addTextToScreen('')
+            else:
+                pass
 
     def openHistory( self ):
         pass
