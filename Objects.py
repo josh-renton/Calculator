@@ -1,6 +1,5 @@
 
 
-
 import PySide.QtGui as QtGui
 import PySide.QtCore as QtCore
 
@@ -8,18 +7,16 @@ import LatentFunctions
 import MathsFunctions
 
 
-
-
 class Calculator( QtGui.QWidget ):
     def __init__( self, geo_avail ):
         QtGui.QWidget.__init__( self )
+        self.geo_avail = geo_avail 
+       
         self.setWindowTitle( "Josh's Calculator" )
-
-
-        self.geo_avail = geo_avail       
+        self.layout = QtGui.QGridLayout()
+        self.pi_char = u'\u03C0'
 
         self.setupGeometry()
-        self.setupLayout()
         self.buildScreen()
         self.buildButtons()
 
@@ -31,21 +28,10 @@ class Calculator( QtGui.QWidget ):
     def setupGeometry( self ):
         
         #self.setMinimumWidth( self.geo_avail.width() / 8 )
-        self.setMaximumWidth( self.geo_avail.width() / 8 ) 
+        self.setMaximumWidth( self.geo_avail.width() / 18 ) 
 
         #self.setMinimumHeight( self.geo_avail.height() / 4 )
-        self.setMaximumHeight( self.geo_avail.height() / 4 )
-
-
-    def setupLayout( self ):
-        self.layout = QtGui.QGridLayout()
-        x = [ ( 0 , 0 ), ( 0 , 2 ), ( 0 , 4 ), ( 2 , 4 ) ]
-
-        for i in x:
-            y = QtGui.QLabel()
-            y.setMinimumWidth( self.geo_avail.width() / 20 )
-            y.setMinimumHeight( self.geo_avail.width() / 20 )
-            self.layout.addWidget( QtGui.QLabel(), i[ 0 ], i[ 1 ] )
+        self.setMaximumHeight( self.geo_avail.height() / 14 )
 
 
     def buildScreen( self ):
@@ -53,9 +39,7 @@ class Calculator( QtGui.QWidget ):
         self.layout.addWidget( self.screen, 1, 1 )
 
 
-
     def buildButtons( self ):
-        pi_char = u'\u03C0'
 
         self.number_dicts = [
 
@@ -78,18 +62,16 @@ class Calculator( QtGui.QWidget ):
 
         self.operation_dicts = [
 
-                { 'name' : 'Equals', 'text' : '=', 'row' : 4 , 'column' : 5 , },
+                { 'name' : 'Plus', 'text' : ' + ', 'row' : 3 , 'column' : 4 , },
+                { 'name' : 'Subtract', 'text' : ' - ', 'row' : 3 , 'column' : 5 , },
                 #
-                { 'name' : 'Plus', 'text' : '+', 'row' : 3 , 'column' : 4 , },
-                { 'name' : 'Subtract', 'text' : '-', 'row' : 3 , 'column' : 5 , },
-                #
-                { 'name' : 'Multiply', 'text' : 'x', 'row' : 2 , 'column' : 4 , },
-                { 'name' : 'Divide', 'text' : '/', 'row' : 2 , 'column' : 5 , },
+                { 'name' : 'Multiply', 'text' : ' x ', 'row' : 2 , 'column' : 4 , },
+                { 'name' : 'Divide', 'text' : ' / ', 'row' : 2 , 'column' : 5 , },
                 #
                 { 'name' : 'LBracket', 'text' : '(', 'row' : 0 , 'column' : 0 , },
                 { 'name' : 'RBracket', 'text' : ')', 'row' : 0 , 'column' : 1 , },
-                { 'name' : 'Percentage', 'text' : '%', 'row' : 0 , 'column' : 2 , },
-                { 'name' : 'Pi', 'text' : pi_char, 'row' : 0 , 'column' : 3 , },
+                { 'name' : 'Percentage', 'text' : ' % ', 'row' : 0 , 'column' : 2 , },
+                { 'name' : 'Pi', 'text' : self.pi_char, 'row' : 0 , 'column' : 3 , },
                 { 'name' : 'Exponent', 'text' : '^', 'row' : 0 , 'column' : 4 , },
                 #
                 { 'name' : 'Sine', 'text' : 'sin', 'row' : 1 , 'column' : 3 , },                            
@@ -104,6 +86,7 @@ class Calculator( QtGui.QWidget ):
                 { 'name' : 'Backspace', 'text' : 'Del', 'row' : 1 , 'column' : 4 , },
                 { 'name' : 'Clear', 'text' : 'AC', 'row' : 1 , 'column' : 5 , },
                 { 'name' : 'History', 'text' : 'His', 'row' : 0 , 'column' : 5 , },
+                { 'name' : 'Equals', 'text' : '=', 'row' : 4 , 'column' : 5 , },
                 
                 ]
 
@@ -131,6 +114,29 @@ class Calculator( QtGui.QWidget ):
 class Screen( QtGui.QTextEdit ):
     def __init__( self, parent=None):
         QtGui.QTextEdit.__init__( self, parent=parent )
+        
+        self.font_weight = 120 
+
+        # This is set here as it is required for Button's backspace function
+        # The 0 is simply a placeholder
+        self.len_difference = 0
+
+        self.setup()
+
+    def setup( self, input_text=False ):
+        self.clear()
+        self.setAlignment( QtCore.Qt.AlignCenter )
+
+        formatting = QtGui.QTextCharFormat()
+        formatting.setFontWeight( self.font_weight )
+
+        cursor = self.textCursor()
+        cursor.setCharFormat( formatting )
+        self.setTextCursor( cursor )
+
+        if input_text:
+            self.textCursor().insertText( input_text )
+
 
 
 
@@ -139,7 +145,7 @@ class Button( QtGui.QPushButton ):
         QtGui.QPushButton.__init__( self, text=text, parent=parent )
         self.__name__ = name
         self.gridrow = row
-        self.gridcolum = column
+        self.gridcolumn = column
         self.calc_screen = self.parent().screen
         self.category = category
 
@@ -153,45 +159,61 @@ class Button( QtGui.QPushButton ):
             self.clicked.connect( self.backspace )
 
         elif self.__name__ == 'Clear':
-            self.clicked.connect( self.calc_screen.clear )            
+            self.clicked.connect( self.calc_screen.setup )            
 
         elif self.__name__ == 'History':
             self.clicked.connect( self.openHistory )
 
+        elif self.__name__ == 'Equals':
+            self.clicked.connect( self.equals )
+
 
     def addTextToScreen( self, text ):
-        current_text = self.calc_screen.toPlainText()
-        self.calc_screen.setText( current_text + text )
-        cursor = self.calc_screen.textCursor()
-        cursor.movePosition( QtGui.QTextCursor.EndOfLine )
-        self.calc_screen.setTextCursor( cursor )
+        old_text = self.calc_screen.toPlainText()
+        if text in [ 'sin', 'cos', 'tan' ]:
+            text += '('
+
+        self.calc_screen.textCursor().insertText( text )
+
+        # This information is used by backspace() to remove the correct number of characters
+        self.calc_screen.len_difference = len( self.calc_screen.toPlainText() ) - len( old_text )
+
 
     def answer( self ):
         pass
 
     def backspace( self ):
-        cursor = self.calc_screen.textCursor()
+        if not len( self.calc_screen.toPlainText() ) < 1:
+            [ self.calc_screen.textCursor().deletePreviousChar() for x in xrange( self.calc_screen.len_difference ) ]
+            
+            if not len( self.calc_screen.toPlainText() ) < 1:
+                # This code ensures that the correct number of chars are deleted if backspace() is called repeatedly
+                exemption_list = [ ' ', 'n', 's' ]
+                if self.calc_screen.toPlainText()[ self.calc_screen.textCursor().position() - 1 ] in exemption_list:
+                    self.calc_screen.len_difference = 3
+                else:
+                    self.calc_screen.len_difference = 1
 
-        if cursor.hasSelection():
-            cursor.removeSelectedText()
-            self.calc_screen.setTextCursor( cursor )
+            else:
+                # Corrects a bug whereby the font weight gets reset if Screen is empty 
+                self.calc_screen.setFontWeight( self.calc_screen.font_weight )
 
         else:
-            current_text = self.calc_screen.toPlainText()
-            if not len( current_text ) < 1:
-                self.calc_screen.setText( self.calc_screen.toPlainText()[ :-1 ] )
-                self.addTextToScreen('')
-            else:
-                pass
+            pass
+
+
 
     def openHistory( self ):
         pass
 
+    def equals( self ):
+        result = MathsFunctions.solveCalculation( self.calc_screen.toPlainText() )
+        self.calc_screen.setup( input_text=result )
 
 
 
 
-
+#class HistoryWindow
 
 
 
